@@ -1,0 +1,79 @@
+package com.hexaware.simplyfly.services;
+
+import com.hexaware.simplyfly.entities.UserInfo;
+import com.hexaware.simplyfly.exceptions.*;
+import com.hexaware.simplyfly.repositories.UserInfoRepository;
+import com.hexaware.simplyfly.security.JwtUtil;
+import com.hexaware.simplyfly.services.IUserInfoService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class UserInfoServiceImpl implements IUserInfoService {
+    
+	@Autowired
+    private final UserInfoRepository repo;
+	@Autowired
+    private final BCryptPasswordEncoder encoder;
+	@Autowired
+    private final JwtUtil jwtUtil;
+
+    public UserInfoServiceImpl(UserInfoRepository repo, BCryptPasswordEncoder encoder, JwtUtil jwtUtil) {
+        this.repo = repo;
+        this.encoder = encoder;
+        this.jwtUtil = jwtUtil;
+    }
+
+    @Override
+    public UserInfo addUser(UserInfo user) {
+        repo.findByEmail(user.getEmail()).ifPresent(u -> {
+            throw new DuplicateResourceException("Email already registered: " + user.getEmail());
+        });
+        user.setRole(user.getRole() == null ? "USER" : user.getRole());
+        user.setPassword(encoder.encode(user.getPassword()));
+        return repo.save(user);
+    }
+
+    @Override
+    public UserInfo getUserById(Long id) {
+        return repo.findById(id).orElseThrow(() -> new UserInfoNotFoundException("User with id " + id + " not found"));
+    }
+
+    @Override
+    public List<UserInfo> getAllUsers() {
+        return repo.findAll();
+    }
+
+    @Override
+    public UserInfo updateUser(Long id, UserInfo user) {
+        UserInfo existing = getUserById(id);
+        existing.setName(user.getName());
+        existing.setGender(user.getGender());
+        existing.setContactNo(user.getContactNo());
+        existing.setAddress(user.getAddress());
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            existing.setPassword(encoder.encode(user.getPassword()));
+        }
+        if (user.getRole() != null) existing.setRole(user.getRole());
+        return repo.save(existing);
+    }
+
+    @Override
+    public String deleteUser(Long id) {
+        UserInfo ex = getUserById(id);
+        repo.delete(ex);
+        return "User deleted successfully";
+    }
+
+    @Override
+    public String loginAndGetToken(String email, String password) {
+        UserInfo user = repo.findByEmail(email).orElseThrow(() -> new UserInfoNotFoundException("Invalid credentials"));
+        if (!encoder.matches(password, user.getPassword())) {
+            throw new UserInfoNotFoundException("Invalid credentials");
+        }
+        return jwtUtil.generateToken(user.getEmail(), user.getRole());
+    }
+}
