@@ -1,11 +1,11 @@
 package com.hexaware.simplyfly.services;
 
+import com.hexaware.simplyfly.dto.UserInfoDto;
 import com.hexaware.simplyfly.entities.UserInfo;
 import com.hexaware.simplyfly.exceptions.*;
 import com.hexaware.simplyfly.repositories.UserInfoRepository;
 import com.hexaware.simplyfly.security.JwtUtil;
-import com.hexaware.simplyfly.services.IUserInfoService;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -13,12 +13,9 @@ import java.util.List;
 
 @Service
 public class UserInfoServiceImpl implements IUserInfoService {
-    
-	@Autowired
+
     private final UserInfoRepository repo;
-	@Autowired
     private final BCryptPasswordEncoder encoder;
-	@Autowired
     private final JwtUtil jwtUtil;
 
     public UserInfoServiceImpl(UserInfoRepository repo, BCryptPasswordEncoder encoder, JwtUtil jwtUtil) {
@@ -32,10 +29,11 @@ public class UserInfoServiceImpl implements IUserInfoService {
         repo.findByEmail(user.getEmail()).ifPresent(u -> {
             throw new DuplicateResourceException("Email already registered: " + user.getEmail());
         });
-        user.setRole(user.getRole() == null ? "USER" : user.getRole());
         user.setPassword(encoder.encode(user.getPassword()));
+        user.setRole(user.getRole() == null ? "USER" : user.getRole());
         return repo.save(user);
     }
+
 
     @Override
     public UserInfo getUserById(Long id) {
@@ -70,10 +68,32 @@ public class UserInfoServiceImpl implements IUserInfoService {
 
     @Override
     public String loginAndGetToken(String email, String password) {
-        UserInfo user = repo.findByEmail(email).orElseThrow(() -> new UserInfoNotFoundException("Invalid credentials"));
+        UserInfo user = repo.findByEmail(email)
+                .orElseThrow(() -> new UserInfoNotFoundException("Invalid credentials"));
+
         if (!encoder.matches(password, user.getPassword())) {
             throw new UserInfoNotFoundException("Invalid credentials");
         }
+
         return jwtUtil.generateToken(user.getEmail(), user.getRole());
     }
+
+	@Override
+	public UserInfo register(UserInfoDto dto) {
+		 repo.findByEmail(dto.getEmail()).ifPresent(u -> {
+	            throw new DuplicateResourceException("Email already registered: " + dto.getEmail());
+	        });
+
+	        UserInfo user = new UserInfo();
+	        user.setName(dto.getName());
+	        user.setEmail(dto.getEmail());
+	        user.setPassword(encoder.encode(dto.getPassword()));
+	        user.setGender(dto.getGender());
+	        user.setContactNo(dto.getContactNo());
+	        user.setAddress(dto.getAddress());
+	        user.setRole("USER"); // ✅ Force default role for public registration
+
+	        return repo.save(user);
+	}
+
 }

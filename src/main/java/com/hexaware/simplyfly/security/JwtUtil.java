@@ -3,58 +3,61 @@ package com.hexaware.simplyfly.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
-import java.nio.charset.StandardCharsets;
+
 import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    // minimum 32 bytes for HS256; change for production or move to properties
-    private static final String SECRET_KEY = "change_this_to_a_very_long_random_secret_32+chars";
-    private static final long EXPIRATION_MS = 24L * 60 * 60 * 1000; // 24 hours
+    private final String SECRET_KEY = "thisisaverylongsecretkeyforjwtwhichmustbeatleast256bits";
+    private final long EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
 
     private Key signingKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    // create token
+    // ✅ Generate token with email & role
     public String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
-                .claim("role", role)
+                .claim("role", role) // role already cleaned in AuthController
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
                 .signWith(signingKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // *** Methods your code calls (exact names) ***
-    public String getEmailFromToken(String token) {
-        return getAllClaims(token).getSubject();
-    }
-
-    public String getRoleFromToken(String token) {
-        Object r = getAllClaims(token).get("role");
-        return r == null ? null : r.toString();
-    }
-
-    // validate token (simple)
+    // ✅ Validate token
     public boolean validateToken(String token) {
         try {
-            getAllClaims(token); // will throw if invalid/expired
+            Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(token);
             return true;
-        } catch (JwtException | IllegalArgumentException ex) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    // helper
-    private Claims getAllClaims(String token) {
+    // ✅ Extract email from token
+    public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(signingKey())
                 .build()
                 .parseClaimsJws(token)
-                .getBody();
+                .getBody()
+                .getSubject();
+    }
+
+    // ✅ Extract role from token
+    public String getRoleFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
     }
 }

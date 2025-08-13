@@ -54,5 +54,18 @@ public class PaymentServiceImpl implements IPaymentService {
         p.setStatus("REFUNDED");
         paymentRepo.save(p);
     }
+    
+    @Override
+    public String initiatePayment(Long bookingId, Double amount) {
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+        if (!"PENDING".equalsIgnoreCase(booking.getStatus())) {
+            throw new BadRequestException("Payment can only be initiated for pending bookings");
+        }
+        // Here you can integrate with a real payment provider
+        return "https://mockpayment.com/pay?bookingId=" + bookingId + "&amount=" + amount;
+    }
+
 }
 

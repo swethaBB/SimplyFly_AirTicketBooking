@@ -7,4 +7,6 @@ public interface IPaymentService {
     Payment pay(PaymentDto dto);
     Payment getPaymentById(Long id);
     void refund(Long paymentId);
+    String initiatePayment(Long bookingId, Double amount);
+
 }

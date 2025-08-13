@@ -65,6 +65,12 @@ public class BookingServiceImpl implements IBookingService {
 
         Booking saved = bookingRepo.save(b);
         seatRepo.saveAll(seats);
+        
+     // Simulate redirect URL for payment provider (replace with actual gateway later)
+        String paymentRedirectUrl = "/api/payments/initiate?bookingId=" + saved.getId() + "&amount=" + total;
+        // You can log or return this via a DTO instead of raw Booking
+        System.out.println("Redirect user to payment page: " + paymentRedirectUrl);
+
 
         return saved;
     }
@@ -103,7 +109,17 @@ public class BookingServiceImpl implements IBookingService {
 
         // refund (if payment exists)
         paymentRepo.findAll().stream()
-                .filter(p -> p.getBooking() != null && p.getBooking().getId().equals(b.getId()))
-                .findFirst().ifPresent(p -> { p.setStatus("REFUNDED"); paymentRepo.save(p); });
+        .filter(p -> p.getBooking() != null && p.getBooking().getId().equals(b.getId()))
+        .findFirst().ifPresent(p -> {
+            if ("SUCCESS".equalsIgnoreCase(p.getStatus())) {
+                p.setStatus("REFUNDED");
+                paymentRepo.save(p);
+                System.out.println("Refund processed for booking " + b.getId());
+            }
+        });
+
     }
+    
+   
+
 }

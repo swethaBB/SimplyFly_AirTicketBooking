@@ -22,6 +22,6 @@ public class UserInfo {
     private String gender;
     private String contactNo;
     private String address;
-    private String role = "USER"; // USER, FLIGHT_OWNER, ADMIN
+    private String role = "USER"; 
     private LocalDateTime createdAt = LocalDateTime.now();
 }

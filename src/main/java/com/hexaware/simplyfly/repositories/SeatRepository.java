@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SeatRepository extends JpaRepository<Seat, Long> {
-    List<Seat> findByFlightAndIsBookedFalse(Flight flight);
-    Optional<Seat> findByFlightAndSeatNumber(Flight flight, String seatNumber);
-    List<Seat> findByFlight(Flight f);
+	
+	  List<Seat> findByFlightAndIsBookedFalse(Flight flight); Optional<Seat>
+	  findByFlightAndSeatNumber(Flight flight, String seatNumber); List<Seat>
+	  findByFlight(Flight f);
+	 
 }

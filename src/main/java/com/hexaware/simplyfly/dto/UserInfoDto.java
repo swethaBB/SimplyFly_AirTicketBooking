@@ -1,5 +1,10 @@
 package com.hexaware.simplyfly.dto;
 
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.hexaware.simplyfly.entities.UserInfo;
+
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -40,7 +45,10 @@ public class UserInfoDto {
     private String address;
 
     @NotBlank(message = "Role is mandatory")
-    @Pattern(regexp = "^(USER|FLIGHT_OWNER|ADMIN)$", 
-             message = "Role must be USER, FLIGHT_OWNER, or ADMIN")
+    @Pattern(regexp = "^(USER|FLIGHT_OWNER|ADMIN)$", flags = Pattern.Flag.UNICODE_CASE,
+             message = "Role must be USER, FLIGHT_OWNER, or ADMIN (case-sensitive)")
     private String role;
+    
+
+
 }
