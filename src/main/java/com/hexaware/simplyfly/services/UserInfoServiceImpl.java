@@ -91,7 +91,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
 	        user.setGender(dto.getGender());
 	        user.setContactNo(dto.getContactNo());
 	        user.setAddress(dto.getAddress());
-	        user.setRole("USER"); // ✅ Force default role for public registration
+	        user.setRole("USER");
 
 	        return repo.save(user);
 	}

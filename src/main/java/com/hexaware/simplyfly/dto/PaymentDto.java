@@ -5,6 +5,12 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
+
+/*Author : Swetha
+Modified On : 29-07-2025
+Description : PaymentDto with basic validation
+*/
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,4 +32,6 @@ public class PaymentDto {
     private String status;
 
     private Long bookingId;
+
+	
 }

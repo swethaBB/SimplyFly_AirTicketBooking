@@ -35,45 +35,73 @@ public class BookingServiceImpl implements IBookingService {
 
     @Override
     @Transactional
-    public Booking createBooking(String userEmail, BookingDto dto) {
-        UserInfo user = userRepo.findByEmail(userEmail).orElseThrow(() -> new UserInfoNotFoundException("User not found"));
-        Flight flight = flightRepo.findById(dto.getFlightId()).orElseThrow(() -> new FlightNotFoundException("Flight not found"));
+	/*
+	 * public Booking createBooking(String userEmail, BookingDto dto) { UserInfo
+	 * user = userRepo.findByEmail(userEmail).orElseThrow(() -> new
+	 * UserInfoNotFoundException("User not found")); Flight flight =
+	 * flightRepo.findById(dto.getFlightId()).orElseThrow(() -> new
+	 * FlightNotFoundException("Flight not found"));
+	 * 
+	 * if (dto.getSeatNumbers() == null || dto.getSeatNumbers().isEmpty()) throw new
+	 * BadRequestException("Select at least one seat");
+	 * 
+	 * List<Seat> seats = dto.getSeatNumbers().stream().map(sn ->
+	 * seatRepo.findByFlightAndSeatNumber(flight, sn).orElseThrow(() -> new
+	 * SeatNotFoundException("Seat " + sn + " not found"))
+	 * ).collect(Collectors.toList());
+	 * 
+	 * for (Seat s : seats) { if (s.isBooked()) throw new
+	 * BadRequestException("Seat " + s.getSeatNumber() + " is already booked"); }
+	 * 
+	 * Booking b = new Booking(); b.setBookingDate(LocalDateTime.now());
+	 * b.setFlight(flight); b.setUser(user); b.setStatus("PENDING"); double total =
+	 * flight.getFare() * seats.size(); b.setTotalPrice(total);
+	 * 
+	 * for (Seat s : seats) { s.setBooked(true); s.setBooking(b);
+	 * b.getSeats().add(s); }
+	 * 
+	 * Booking saved = bookingRepo.save(b); seatRepo.saveAll(seats); String
+	 * paymentRedirectUrl = "/api/payments/initiate?bookingId=" + saved.getId() +
+	 * "&amount=" + total; System.out.println("Redirect user to payment page: " +
+	 * paymentRedirectUrl);
+	 * 
+	 * 
+	 * return saved; }
+	 */
+    public Booking createBooking(String email, BookingDto dto) {
+        UserInfo user = userRepo.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (dto.getSeatNumbers() == null || dto.getSeatNumbers().isEmpty()) throw new BadRequestException("Select at least one seat");
+        Flight flight = flightRepo.findById(dto.getFlightId())
+            .orElseThrow(() -> new RuntimeException("Flight not found"));
 
-        List<Seat> seats = dto.getSeatNumbers().stream().map(sn ->
-                seatRepo.findByFlightAndSeatNumber(flight, sn).orElseThrow(() -> new SeatNotFoundException("Seat " + sn + " not found"))
-        ).collect(Collectors.toList());
+        List<Seat> seats = seatRepo.findByFlightIdAndSeatNumberIn(dto.getFlightId(), dto.getSeatNumbers());
 
-        for (Seat s : seats) {
-            if (s.isBooked()) throw new BadRequestException("Seat " + s.getSeatNumber() + " is already booked");
+        if (seats.isEmpty()) {
+            throw new RuntimeException("No seats found for booking");
         }
 
-        Booking b = new Booking();
-        b.setBookingDate(LocalDateTime.now());
-        b.setFlight(flight);
-        b.setUser(user);
-        b.setStatus("PENDING");
-        double total = flight.getFare() * seats.size();
-        b.setTotalPrice(total);
-
-        for (Seat s : seats) {
-            s.setBooked(true);
-            s.setBooking(b);
-            b.getSeats().add(s);
+        for (Seat seat : seats) {
+            if (seat.isBooked()) {
+                throw new RuntimeException("Seat " + seat.getSeatNumber() + " is already booked");
+            }
+            seat.setBooked(true);
         }
 
-        Booking saved = bookingRepo.save(b);
-        seatRepo.saveAll(seats);
-        
-     // Simulate redirect URL for payment provider (replace with actual gateway later)
-        String paymentRedirectUrl = "/api/payments/initiate?bookingId=" + saved.getId() + "&amount=" + total;
-        // You can log or return this via a DTO instead of raw Booking
-        System.out.println("Redirect user to payment page: " + paymentRedirectUrl);
+        Booking booking = new Booking();
+        booking.setUser(user);
+        booking.setFlight(flight);
+        booking.setSeats(new HashSet<>(seats));
+        booking.setTotalPrice(flight.getFare() * seats.size());
+        booking.setStatus("CONFIRMED");
 
+        for (Seat seat : seats) {
+            seat.setBooking(booking); // 🔥 This is critical
+        }
 
-        return saved;
+        return bookingRepo.save(booking);
     }
+
 
     @Override
     public Booking getBookingById(Long id) {

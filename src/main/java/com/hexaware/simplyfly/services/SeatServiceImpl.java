@@ -14,10 +14,9 @@ import java.util.List;
 @Service
 public class SeatServiceImpl implements ISeatService {
 	
-    @Autowired
-    private SeatRepository seatRepo;
-    @Autowired
-    private FlightRepository flightRepo;
+
+    private final SeatRepository seatRepo;
+    private final FlightRepository flightRepo;
 
     public SeatServiceImpl(SeatRepository seatRepo, FlightRepository flightRepo) {
         this.seatRepo = seatRepo;
@@ -26,7 +25,6 @@ public class SeatServiceImpl implements ISeatService {
 
     @Override
     public Seat addSeat(Seat seat) {
-        // ensure flight exists
         if (seat.getFlight() == null || seat.getFlight().getId() == null) {
             throw new BadRequestException("Flight id is required for seat");
         }

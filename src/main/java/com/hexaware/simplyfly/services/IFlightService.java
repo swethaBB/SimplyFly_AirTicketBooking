@@ -11,4 +11,5 @@ public interface IFlightService {
     Flight updateFlight(Long id, FlightDto dto);
     String deleteFlight(Long id);
     List<Flight> searchFlights(String origin, String destination);
+	
 }

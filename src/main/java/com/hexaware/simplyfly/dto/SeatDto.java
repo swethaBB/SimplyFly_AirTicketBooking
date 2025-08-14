@@ -4,6 +4,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
+
+/*Author : Swetha
+Modified On : 29-07-2025
+Description : SeatDto with basic validation
+*/
+
 @Getter
 @Setter
 @NoArgsConstructor

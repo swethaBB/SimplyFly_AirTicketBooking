@@ -7,17 +7,21 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
+/*Author : Swetha
+Modified On : 9-08-2025
+Description : JwtUtil  implemented
+*/
+
 @Component
 public class JwtUtil {
 
     private final String SECRET_KEY = "thisisaverylongsecretkeyforjwtwhichmustbeatleast256bits";
-    private final long EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
+    private final long EXPIRATION_MS = 24 * 60 * 60 * 1000; 
 
     private Key signingKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    // ✅ Generate token with email & role
     public String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
@@ -28,7 +32,6 @@ public class JwtUtil {
                 .compact();
     }
 
-    // ✅ Validate token
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -41,7 +44,6 @@ public class JwtUtil {
         }
     }
 
-    // ✅ Extract email from token
     public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(signingKey())
@@ -50,8 +52,7 @@ public class JwtUtil {
                 .getBody()
                 .getSubject();
     }
-
-    // ✅ Extract role from token
+    
     public String getRoleFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(signingKey())

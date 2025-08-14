@@ -22,23 +22,18 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponseDto login(@RequestBody AuthRequestDto request) {
-        // ✅ Authenticate user credentials
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-
-        // ✅ Extract authenticated email and role
+        
         String email = authentication.getName();
         String role = authentication.getAuthorities()
                                     .iterator()
                                     .next()
                                     .getAuthority()
                                     .replace("ROLE_", "");
-
-        // ✅ Generate JWT token with email and role
+        
         String token = jwtUtil.generateToken(email, role);
-
-        // ✅ Return JWT token
         return new AuthResponseDto(token);
     }
 }

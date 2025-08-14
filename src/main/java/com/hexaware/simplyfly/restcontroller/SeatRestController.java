@@ -1,6 +1,7 @@
 package com.hexaware.simplyfly.restcontroller;
 
 import com.hexaware.simplyfly.entities.Seat;
+import com.hexaware.simplyfly.services.IFlightService;
 import com.hexaware.simplyfly.services.ISeatService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class SeatRestController {
     public SeatRestController(ISeatService service) { 
     	this.service = service; 
     }
+  
 
     @PostMapping("/addseat")
     @PreAuthorize("hasAnyRole('FLIGHT_OWNER','ADMIN')")
@@ -28,12 +30,16 @@ public class SeatRestController {
     	log.info("Adding new seat: {}", seat.getSeatNumber());
     	return service.addSeat(seat); 
     }
+   
+   
 
+ 
     @GetMapping("/{id}")
     public Seat get(@PathVariable Long id) {
     	log.info("Fetching seat with ID: {}", id);
     	return service.getSeatById(id); 
     }
+
 
     @GetMapping("/getall")
     public List<Seat> all() { 

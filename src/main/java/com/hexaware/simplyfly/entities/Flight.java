@@ -3,10 +3,16 @@ package com.hexaware.simplyfly.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+/*Author : Swetha 
+Modified On : 25-07-2025
+Description : Flights entity class 
+*/
+
+
 @Entity
 @Table(name = "flights")
-@Getter
 @Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Flight {
@@ -22,4 +28,6 @@ public class Flight {
     @ManyToOne
     @JoinColumn(name = "route_id")
     private Route route;
+	
+	
 }

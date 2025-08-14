@@ -3,6 +3,11 @@ package com.hexaware.simplyfly.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+/*Author : Swetha
+Modified On : 29-07-2025
+Description : AuthRequestDto with basic validation
+*/
+
 public class AuthRequestDto {
 
     @NotBlank(message = "Email is required")

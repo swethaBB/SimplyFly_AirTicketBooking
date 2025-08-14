@@ -9,6 +9,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 
+/*Author : Swetha
+Modified On : 9-08-2025
+Description : CustomerUserDetailsService implemented
+*/
+
 @Service
 @Primary
 public class CustomerUserDetailsService implements UserDetailsService {

@@ -7,6 +7,7 @@ import com.hexaware.simplyfly.services.IPaymentService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -27,7 +28,7 @@ public class BookingRestController {
     	this.service = service; 
     	}
 
-    @PostMapping
+    @PostMapping("/bookingseat")
     public Map<String, Object> createBooking(Authentication auth, @Valid @RequestBody BookingDto dto) {
         String email = (String) auth.getPrincipal();
         Booking booking = service.createBooking(email, dto);
@@ -37,11 +38,19 @@ public class BookingRestController {
     }
 
 
+
+
     @GetMapping("/{id}")
-    public Booking get(@PathVariable Long id) { 
-    	log.info("Fetching booking with ID: {}", id);
-        return service.getBookingById(id); 
-     }
+    public ResponseEntity<Booking> getBookingById(@PathVariable Long id) {
+        Booking booking = service.getBookingById(id);
+
+        Booking dto = new Booking(
+        );
+
+        return ResponseEntity.ok(dto);
+    }
+
+
 
     @GetMapping("/me")
     public List<Booking> myBookings(Authentication auth) {

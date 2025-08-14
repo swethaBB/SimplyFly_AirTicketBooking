@@ -7,10 +7,14 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+/*Author : Swetha
+Modified On : 9-08-2025
+Description : JwtAuthenticationEntryPoint  implemented
+*/
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {

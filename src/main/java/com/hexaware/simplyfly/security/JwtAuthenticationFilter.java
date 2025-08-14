@@ -13,6 +13,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+/*Author : Swetha
+Modified On : 9-08-2025
+Description : JwtAuthenticationFilter  implemented
+*/
+
+
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -32,23 +38,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(7);
 
             try {
-                // ✅ Validate JWT token
                 if (jwtUtil.validateToken(token)) {
                     String email = jwtUtil.getEmailFromToken(token);
                     String role = jwtUtil.getRoleFromToken(token);
 
-                    // ✅ Add ROLE_ prefix for Spring Security
                     SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
 
-                    // ✅ Create authentication object
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(email, null, Collections.singletonList(authority));
-
-                    // ✅ Set authentication in security context
+                    
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             } catch (Exception e) {
-                // Clear authentication if token is invalid
                 SecurityContextHolder.clearContext();
             }
         }

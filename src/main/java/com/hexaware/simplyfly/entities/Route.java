@@ -3,6 +3,13 @@ package com.hexaware.simplyfly.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+
+/*Author : Swetha 
+Modified On : 25-07-2025
+Description : Route entity class 
+*/
+
+
 @Entity
 @Table(name = "routes")
 @Getter

@@ -5,6 +5,11 @@ import jakarta.validation.constraints.Email;
 import lombok.*;
 import java.time.LocalDateTime;
 
+/*Author : Swetha 
+Modified On : 25-07-2025
+Description : UserInfo entity class 
+*/
+
 @Entity
 @Table(name = "users")
 @Getter

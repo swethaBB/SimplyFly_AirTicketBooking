@@ -13,6 +13,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/*Author : Swetha
+Modified On : 29-07-2025
+Description : UserInfoDto with basic validation
+*/
+
+
 @Getter
 @Setter
 @NoArgsConstructor

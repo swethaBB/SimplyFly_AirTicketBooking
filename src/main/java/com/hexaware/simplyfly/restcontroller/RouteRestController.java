@@ -33,7 +33,7 @@ public class RouteRestController {
     	return service.getRouteById(id); 
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Route> getAll() { 
     	log.info("Fetching all routes");
     	return service.getAllRoutes(); 

@@ -19,8 +19,6 @@ public class GlobalExceptionHandler {
         body.put("path", req.getDescription(false).replace("uri=", ""));
         return new ResponseEntity<>(body, status);
     }
-    
-    // ===================== Not Found Exceptions =====================
 
     @ExceptionHandler(UserInfoNotFoundException.class)
     public ResponseEntity<Object> handleUserNotFound(UserInfoNotFoundException ex, WebRequest req) {
@@ -52,8 +50,6 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, "Flight Not Found", ex.getMessage(), req);
     }
 
-    // ===================== Other Business Exceptions =====================
-
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<Object> handleDuplicateResource(DuplicateResourceException ex, WebRequest req) {
         return build(HttpStatus.CONFLICT, "Duplicate Resource", ex.getMessage(), req);
@@ -64,17 +60,13 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(), req);
     }
 
-    // ===================== Validation Errors =====================
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidation(MethodArgumentNotValidException ex, WebRequest req) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(fe -> errors.put(fe.getField(), fe.getDefaultMessage()));
         return build(HttpStatus.BAD_REQUEST, "Validation Failed", errors, req);
     }
-
-    // ===================== Fallback =====================
-
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAll(Exception ex, WebRequest req) {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", ex.getMessage(), req);

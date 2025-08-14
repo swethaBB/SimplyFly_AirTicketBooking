@@ -6,6 +6,13 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
+
+/*Author : Swetha
+Modified On : 29-07-2025
+Description :FlightDto with basic validation
+*/
+
+
 @Getter
 @Setter
 @NoArgsConstructor

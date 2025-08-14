@@ -10,5 +10,6 @@ public interface IBookingService {
     List<Booking> getBookingsForUser(String userEmail);
     List<Booking> getBookingsForFlight(Long flightId);
     void cancelBooking(String userEmail, Long bookingId);
+	
 
 }

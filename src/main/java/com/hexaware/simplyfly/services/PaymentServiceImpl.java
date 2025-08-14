@@ -30,13 +30,12 @@ public class PaymentServiceImpl implements IPaymentService {
     public Payment pay(PaymentDto dto) {
         Booking booking = bookingRepo.findById(dto.getBookingId()).orElseThrow(() -> new BookingNotFoundException("Booking not found"));
         if (!"PENDING".equalsIgnoreCase(booking.getStatus())) {
-            // if already confirmed, we may still allow payment; business decision
         }
         Payment p = new Payment();
         p.setBooking(booking);
         p.setAmount(dto.getAmount());
         p.setMethod(dto.getMethod());
-        p.setStatus("SUCCESS"); // simulate success
+        p.setStatus("SUCCESS");
         Payment saved = paymentRepo.save(p);
         booking.setStatus("CONFIRMED");
         bookingRepo.save(booking);
@@ -63,7 +62,6 @@ public class PaymentServiceImpl implements IPaymentService {
         if (!"PENDING".equalsIgnoreCase(booking.getStatus())) {
             throw new BadRequestException("Payment can only be initiated for pending bookings");
         }
-        // Here you can integrate with a real payment provider
         return "https://mockpayment.com/pay?bookingId=" + bookingId + "&amount=" + amount;
     }
 
