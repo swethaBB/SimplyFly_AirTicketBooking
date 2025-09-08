@@ -43,6 +43,8 @@ public class FlightDto {
 
     @NotBlank(message = "Arrival time is mandatory")
     private String arrivalDateTime;
+    
+    private String status; 
 
     private Long routeId;
 }

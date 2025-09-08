@@ -65,6 +65,16 @@ public class UserInfoServiceImpl implements IUserInfoService {
         repo.delete(ex);
         return "User deleted successfully";
     }
+    
+    @Override
+    public UserInfo updateUserRole(Long id, String newRole) {
+        UserInfo user = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setRole(newRole);
+        return repo.save(user);
+    }
+
 
     @Override
     public String loginAndGetToken(String email, String password) {

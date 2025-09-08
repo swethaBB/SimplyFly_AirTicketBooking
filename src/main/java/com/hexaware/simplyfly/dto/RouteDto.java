@@ -4,9 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
-/*Author : Swetha
-Modified On : 29-07-2025
-Description : RouteDto with basic validation
+/*Author : Swetha  
+Modified On : 05-09-2025  
+Description : RouteDto with status for admin control
 */
 
 @Getter
@@ -28,4 +28,5 @@ public class RouteDto {
 
     @Positive(message = "Distance must be positive")
     private Double distanceKm;
+
 }

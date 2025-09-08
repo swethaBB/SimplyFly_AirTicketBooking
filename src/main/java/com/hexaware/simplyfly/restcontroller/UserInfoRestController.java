@@ -1,5 +1,6 @@
 package com.hexaware.simplyfly.restcontroller;
 
+import com.hexaware.simplyfly.dto.RoleUpdateDto;
 import com.hexaware.simplyfly.dto.UserInfoDto;
 import com.hexaware.simplyfly.entities.UserInfo;
 import com.hexaware.simplyfly.services.IUserInfoService;
@@ -8,11 +9,13 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:5173/")
 @RestController
 @Slf4j
 @RequestMapping("/api/users")
@@ -70,4 +73,13 @@ public class UserInfoRestController {
     	log.info("Deleting user with ID: {}", id);
         return service.deleteUser(id);
     }
+    
+    @PutMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserInfo> updateUserRole(@PathVariable Long id, @Valid @RequestBody RoleUpdateDto dto) {
+        log.info("Updating role for user ID: {}", id);
+        UserInfo updatedUser = service.updateUserRole(id, dto.getRole());
+        return ResponseEntity.ok(updatedUser);
+    }
+
 }

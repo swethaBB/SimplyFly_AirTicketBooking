@@ -46,6 +46,8 @@ public class FlightServiceImpl implements IFlightService {
     public Flight getFlightById(Long id) {
         return flightRepo.findById(id).orElseThrow(() -> new FlightNotFoundException("Flight with id " + id + " not found"));
     }
+    
+
 
     @Override
     public List<Flight> getAllFlights() { return flightRepo.findAll(); }
@@ -67,6 +69,8 @@ public class FlightServiceImpl implements IFlightService {
         }
         return flightRepo.save(existing);
     }
+    
+
 
     @Override
     public String deleteFlight(Long id) {
@@ -79,4 +83,13 @@ public class FlightServiceImpl implements IFlightService {
     public List<Flight> searchFlights(String origin, String destination) {
         return flightRepo.findByRoute_OriginAndRoute_Destination(origin, destination);
     }
+    
+    @Override
+    @Transactional
+    public Flight updateFlightStatus(Long id, String status) {
+        Flight flight = getFlightById(id);
+        flight.setStatus(status);
+        return flightRepo.save(flight);
+    }
+
 }

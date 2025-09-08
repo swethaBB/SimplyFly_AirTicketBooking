@@ -25,6 +25,8 @@ public class Flight {
     private String baggageInfo;
     private String departureDateTime; 
     private String arrivalDateTime;
+    @Column(nullable = false)
+    private String status = "SCHEDULED";
     @ManyToOne
     @JoinColumn(name = "route_id")
     private Route route;

@@ -12,5 +12,7 @@ public interface IUserInfoService {
     String deleteUser(Long id);
     UserInfo register(UserInfoDto dto);
     String loginAndGetToken(String email, String password);
+    UserInfo updateUserRole(Long id, String newRole);
+
 }
 

@@ -1,14 +1,12 @@
 package com.hexaware.simplyfly.repositories;
 
 import com.hexaware.simplyfly.entities.Payment;
+
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-
-/*Author : Swetha 
-Modified On : 27-07-2025
-Description : Payment Repository interface 
-*/
-
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-	
+	Optional<Payment> findByBookingId(Long bookingId);
+
 }

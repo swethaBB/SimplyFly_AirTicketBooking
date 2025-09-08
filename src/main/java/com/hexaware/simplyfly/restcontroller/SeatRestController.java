@@ -1,69 +1,71 @@
 package com.hexaware.simplyfly.restcontroller;
 
+import com.hexaware.simplyfly.dto.SeatDto;
 import com.hexaware.simplyfly.entities.Seat;
-import com.hexaware.simplyfly.services.IFlightService;
 import com.hexaware.simplyfly.services.ISeatService;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:5173/")
 @RestController
-@Slf4j
 @RequestMapping("/api/seats")
 public class SeatRestController {
-	
-    @Autowired
-    private ISeatService service;
-    public SeatRestController(ISeatService service) { 
-    	this.service = service; 
-    }
-  
 
-    @PostMapping("/addseat")
+    private final ISeatService service;
+    public SeatRestController(ISeatService service) { this.service = service; }
+
+    @PostMapping("/add")
     @PreAuthorize("hasAnyRole('FLIGHT_OWNER','ADMIN')")
-    public Seat add(@RequestBody Seat seat) { 
-    	log.info("Adding new seat: {}", seat.getSeatNumber());
-    	return service.addSeat(seat); 
-    }
-   
-   
+    public Seat add(@RequestBody Seat seat) { return service.addSeat(seat); }
 
- 
+	
     @GetMapping("/{id}")
-    public Seat get(@PathVariable Long id) {
-    	log.info("Fetching seat with ID: {}", id);
-    	return service.getSeatById(id); 
+    public SeatDto get(@PathVariable Long id) {
+        Seat seat = service.getSeatById(id);
+        return convertToDto(seat);
+    }
+    
+    
+    @GetMapping("/all")
+    public List<SeatDto> all() {
+        return service.getAllSeats().stream()
+            .map(this::convertToDto)
+            .toList();
+    }
+
+    private SeatDto convertToDto(Seat seat) {
+        SeatDto dto = new SeatDto();
+        dto.setId(seat.getId());
+        dto.setSeatNumber(seat.getSeatNumber());
+        dto.setSeatClass(seat.getSeatClass());
+        dto.setBooked(seat.isBooked());
+        dto.setFlightId(seat.getFlight() != null ? seat.getFlight().getId() : null);
+        dto.setBookingId(seat.getBooking() != null ? seat.getBooking().getId() : null);
+        return dto;
     }
 
 
-    @GetMapping("/getall")
-    public List<Seat> all() { 
-    	log.info("Fetching all seats");
-    	return service.getAllSeats(); 
-    }
-
+    
     @GetMapping("/flight/{flightId}/available")
-    public List<Seat> available(@PathVariable Long flightId) { 
-    	log.info("Fetching available seats for flight ID: {}", flightId);
-    	return service.getAvailableSeatsByFlightId(flightId); 
+    public List<SeatDto> available(@PathVariable Long flightId) {
+        List<Seat> seats = service.getAvailableSeatsByFlightId(flightId);
+        return seats.stream().map(this::convertToDto).toList();
     }
 
+
+    
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('FLIGHT_OWNER','ADMIN')")
-    public Seat update(@PathVariable Long id, @RequestBody Seat seat) { 
-    	log.info("Updating seat with ID: {}", id);
-    	return service.updateSeat(id, seat); 
+    public SeatDto update(@PathVariable Long id, @RequestBody Seat seat) {
+        Seat updatedSeat = service.updateSeat(id, seat);
+        return convertToDto(updatedSeat);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('FLIGHT_OWNER','ADMIN')")
-    public String delete(@PathVariable Long id) { 
-    	log.info("Deleting seat with ID: {}", id);
+    public String delete(@PathVariable Long id) {
         return service.deleteSeat(id);
     }
 }

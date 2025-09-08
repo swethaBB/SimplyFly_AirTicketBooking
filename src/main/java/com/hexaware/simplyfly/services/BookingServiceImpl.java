@@ -4,11 +4,11 @@ import com.hexaware.simplyfly.dto.BookingDto;
 import com.hexaware.simplyfly.entities.*;
 import com.hexaware.simplyfly.exceptions.*;
 import com.hexaware.simplyfly.repositories.*;
-import com.hexaware.simplyfly.services.IBookingService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,82 +35,60 @@ public class BookingServiceImpl implements IBookingService {
 
     @Override
     @Transactional
-	/*
-	 * public Booking createBooking(String userEmail, BookingDto dto) { UserInfo
-	 * user = userRepo.findByEmail(userEmail).orElseThrow(() -> new
-	 * UserInfoNotFoundException("User not found")); Flight flight =
-	 * flightRepo.findById(dto.getFlightId()).orElseThrow(() -> new
-	 * FlightNotFoundException("Flight not found"));
-	 * 
-	 * if (dto.getSeatNumbers() == null || dto.getSeatNumbers().isEmpty()) throw new
-	 * BadRequestException("Select at least one seat");
-	 * 
-	 * List<Seat> seats = dto.getSeatNumbers().stream().map(sn ->
-	 * seatRepo.findByFlightAndSeatNumber(flight, sn).orElseThrow(() -> new
-	 * SeatNotFoundException("Seat " + sn + " not found"))
-	 * ).collect(Collectors.toList());
-	 * 
-	 * for (Seat s : seats) { if (s.isBooked()) throw new
-	 * BadRequestException("Seat " + s.getSeatNumber() + " is already booked"); }
-	 * 
-	 * Booking b = new Booking(); b.setBookingDate(LocalDateTime.now());
-	 * b.setFlight(flight); b.setUser(user); b.setStatus("PENDING"); double total =
-	 * flight.getFare() * seats.size(); b.setTotalPrice(total);
-	 * 
-	 * for (Seat s : seats) { s.setBooked(true); s.setBooking(b);
-	 * b.getSeats().add(s); }
-	 * 
-	 * Booking saved = bookingRepo.save(b); seatRepo.saveAll(seats); String
-	 * paymentRedirectUrl = "/api/payments/initiate?bookingId=" + saved.getId() +
-	 * "&amount=" + total; System.out.println("Redirect user to payment page: " +
-	 * paymentRedirectUrl);
-	 * 
-	 * 
-	 * return saved; }
-	 */
     public Booking createBooking(String email, BookingDto dto) {
         UserInfo user = userRepo.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new UserInfoNotFoundException("User not found"));
 
         Flight flight = flightRepo.findById(dto.getFlightId())
-            .orElseThrow(() -> new RuntimeException("Flight not found"));
+            .orElseThrow(() -> new FlightNotFoundException("Flight not found"));
+
+        if (dto.getSeatNumbers() == null || dto.getSeatNumbers().isEmpty()) {
+            throw new BadRequestException("Select at least one seat");
+        }
 
         List<Seat> seats = seatRepo.findByFlightIdAndSeatNumberIn(dto.getFlightId(), dto.getSeatNumbers());
 
         if (seats.isEmpty()) {
-            throw new RuntimeException("No seats found for booking");
+            throw new SeatNotFoundException("No seats found for booking");
         }
 
         for (Seat seat : seats) {
             if (seat.isBooked()) {
-                throw new RuntimeException("Seat " + seat.getSeatNumber() + " is already booked");
+                throw new BadRequestException("Seat " + seat.getSeatNumber() + " is already booked");
             }
             seat.setBooked(true);
         }
 
         Booking booking = new Booking();
+        booking.setBookingDate(LocalDateTime.now());
         booking.setUser(user);
         booking.setFlight(flight);
         booking.setSeats(new HashSet<>(seats));
-        booking.setTotalPrice(flight.getFare() * seats.size());
-        booking.setStatus("CONFIRMED");
+        booking.setTotalPrice(dto.getTotalPrice());
+        booking.setStatus("PENDING");
+        booking.setEmail(dto.getEmail());
+        booking.setPassengerName(dto.getPassengerName());
 
         for (Seat seat : seats) {
-            seat.setBooking(booking); // 🔥 This is critical
+            seat.setBooking(booking);
         }
 
-        return bookingRepo.save(booking);
-    }
+        Booking saved = bookingRepo.save(booking);
+        seatRepo.saveAll(seats);
 
+        return saved;
+    }
 
     @Override
     public Booking getBookingById(Long id) {
-        return bookingRepo.findById(id).orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+        return bookingRepo.findById(id)
+            .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
     }
 
     @Override
-    public List<Booking> getBookingsForUser(String userEmail) {
-        UserInfo user = userRepo.findByEmail(userEmail).orElseThrow(() -> new UserInfoNotFoundException("User not found"));
+    public List<Booking> getBookingsForUser(String email) {
+        UserInfo user = userRepo.findByEmail(email)
+            .orElseThrow(() -> new UserInfoNotFoundException("User not found"));
         return bookingRepo.findByUser(user);
     }
 
@@ -120,34 +98,66 @@ public class BookingServiceImpl implements IBookingService {
     }
 
     @Override
+    public List<Booking> getAllBookings() {
+        return bookingRepo.findAll();
+    }
+
+    @Override
+    public List<Booking> getBookingsByStatus(String status) {
+        return bookingRepo.findByStatus(status.toUpperCase());
+    }
+
+    @Override
+    public List<Booking> getBookingsByFlightAndStatus(Long flightId, String status) {
+        return bookingRepo.findByFlight_IdAndStatus(flightId, status.toUpperCase());
+    }
+
+    @Override
+    public List<Booking> getBookingsByDateRange(String start, String end) {
+        try {
+            LocalDateTime startDate = LocalDateTime.parse(start);
+            LocalDateTime endDate = LocalDateTime.parse(end);
+            return bookingRepo.findByBookingDateBetween(startDate, endDate);
+        } catch (DateTimeParseException e) {
+            throw new BadRequestException("Invalid date format. Use ISO format: yyyy-MM-ddTHH:mm:ss");
+        }
+    }
+
+    @Override
     @Transactional
-    public void cancelBooking(String userEmail, Long bookingId) {
-        UserInfo user = userRepo.findByEmail(userEmail).orElseThrow(() -> new UserInfoNotFoundException("User not found"));
-        Booking b = bookingRepo.findById(bookingId).orElseThrow(() -> new BookingNotFoundException("Booking not found"));
-        if (!b.getUser().getId().equals(user.getId())) throw new BadRequestException("Not authorized to cancel this booking");
-        if ("CANCELLED".equalsIgnoreCase(b.getStatus())) throw new BadRequestException("Booking already cancelled");
+    public void cancelBooking(String email, Long bookingId) {
+        UserInfo user = userRepo.findByEmail(email)
+            .orElseThrow(() -> new UserInfoNotFoundException("User not found"));
+
+        Booking b = bookingRepo.findById(bookingId)
+            .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+        if (!b.getUser().getId().equals(user.getId())) {
+            throw new BadRequestException("Not authorized to cancel this booking");
+        }
+
+        if ("CANCELLED".equalsIgnoreCase(b.getStatus())) {
+            throw new BadRequestException("Booking already cancelled");
+        }
 
         for (Seat s : b.getSeats()) {
             s.setBooked(false);
             s.setBooking(null);
         }
+
         seatRepo.saveAll(new ArrayList<>(b.getSeats()));
         b.setStatus("CANCELLED");
         bookingRepo.save(b);
 
-        // refund (if payment exists)
         paymentRepo.findAll().stream()
-        .filter(p -> p.getBooking() != null && p.getBooking().getId().equals(b.getId()))
-        .findFirst().ifPresent(p -> {
-            if ("SUCCESS".equalsIgnoreCase(p.getStatus())) {
-                p.setStatus("REFUNDED");
-                paymentRepo.save(p);
-                System.out.println("Refund processed for booking " + b.getId());
-            }
-        });
-
+            .filter(p -> p.getBooking() != null && p.getBooking().getId().equals(b.getId()))
+            .findFirst()
+            .ifPresent(p -> {
+                if ("SUCCESS".equalsIgnoreCase(p.getStatus())) {
+                    p.setStatus("REFUNDED");
+                    paymentRepo.save(p);
+                    System.out.println("Refund processed for booking " + b.getId());
+                }
+            });
     }
-    
-   
-
 }

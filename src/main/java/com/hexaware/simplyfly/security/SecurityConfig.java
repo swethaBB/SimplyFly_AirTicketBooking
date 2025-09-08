@@ -10,10 +10,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
-/*Author : Swetha
-Modified On : 9-08-2025
-Description : SecurityConfig implemented
+/*Author : Swetha  
+Modified On : 9-08-2025  
+Description : SecurityConfig updated to allow unauthenticated access to /api/users/register  
 */
 
 @Configuration
@@ -35,21 +36,40 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtUtil);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil);
+        filter.setExcludedPaths(new String[] {
+            "/api/users/register",
+            "/api/v1/auth/**",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/api/seats/addseat",
+            "/api/bookings/**",
+            "/api/bookings/flight/**"
+        });
+        return filter;
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-    
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**","api/seats/addseat", "api/bookings/**", "/api/users/register", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(
+                    "/api/v1/auth/**",
+                    "/api/users/register",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    "/api/seats/addseat",
+                    "/api/bookings/**",
+                    "/api/bookings/flight/**",
+                    "/api/payments/**" 
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults());

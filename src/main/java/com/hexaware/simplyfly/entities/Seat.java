@@ -1,5 +1,7 @@
 package com.hexaware.simplyfly.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,8 +28,10 @@ public class Seat {
     private boolean isBooked = false;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "flight_id")
+    @JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "seats"})
     private Flight flight;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id")
+    @JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "seats"})    
     private Booking booking;
 }

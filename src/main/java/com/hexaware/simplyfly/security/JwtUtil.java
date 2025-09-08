@@ -7,25 +7,21 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
-/*Author : Swetha
-Modified On : 9-08-2025
-Description : JwtUtil  implemented
-*/
-
 @Component
 public class JwtUtil {
 
     private final String SECRET_KEY = "thisisaverylongsecretkeyforjwtwhichmustbeatleast256bits";
-    private final long EXPIRATION_MS = 24 * 60 * 60 * 1000; 
+    private final long EXPIRATION_MS = 24 * 60 * 60 * 1000;
 
     private Key signingKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
     public String generateToken(String email, String role) {
+        String normalizedRole = role.toUpperCase(); // ✅ Ensure role is uppercase
         return Jwts.builder()
                 .setSubject(email)
-                .claim("role", role) // role already cleaned in AuthController
+                .claim("role", normalizedRole)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
                 .signWith(signingKey(), SignatureAlgorithm.HS256)
@@ -52,7 +48,7 @@ public class JwtUtil {
                 .getBody()
                 .getSubject();
     }
-    
+
     public String getRoleFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(signingKey())

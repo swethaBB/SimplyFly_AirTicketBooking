@@ -6,8 +6,10 @@ import com.hexaware.simplyfly.security.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "http://localhost:5173/")
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
@@ -25,14 +27,15 @@ public class AuthController {
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-        
+
         String email = authentication.getName();
-        String role = authentication.getAuthorities()
-                                    .iterator()
-                                    .next()
-                                    .getAuthority()
-                                    .replace("ROLE_", "");
-        
+        String role = authentication.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .findFirst()
+                        .orElse("USER")
+                        .replace("ROLE_", "")
+                        .toUpperCase(); // ✅ Normalize role to uppercase
+
         String token = jwtUtil.generateToken(email, role);
         return new AuthResponseDto(token);
     }

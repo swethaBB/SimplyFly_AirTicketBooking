@@ -4,9 +4,10 @@ import com.hexaware.simplyfly.dto.PaymentDto;
 import com.hexaware.simplyfly.entities.Payment;
 
 public interface IPaymentService {
-    Payment pay(PaymentDto dto);
-    Payment getPaymentById(Long id);
+    PaymentDto pay(PaymentDto dto);
+    PaymentDto getPaymentById(Long id);
     void refund(Long paymentId);
     String initiatePayment(Long bookingId, Double amount);
+    Payment getPaymentByBookingId(Long bookingId);
 
 }

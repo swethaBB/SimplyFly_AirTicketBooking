@@ -14,7 +14,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
+@CrossOrigin(origins = "http://localhost:5173/")
 @RestController
 @Slf4j
 @RequestMapping("/api/flights")
@@ -27,14 +29,6 @@ public class FlightRestController {
     	this.service = service; 
     }
 
-	/*
-	 * @PostMapping
-	 * 
-	 * @PreAuthorize("hasAnyRole('FLIGHT_OWNER','ADMIN')") public Flight
-	 * create(@RequestBody FlightDto dto) { log.info("Creating new flight: {}",
-	 * dto.getFlightName()); return service.createFlight(dto); }
-	 */
-    
     @PostMapping("/addflight")
     @PreAuthorize("hasAnyRole('FLIGHT_OWNER','ADMIN')")
     public ResponseEntity<Flight> create(@Valid @RequestBody FlightDto dto) {
@@ -49,7 +43,7 @@ public class FlightRestController {
     	return service.getFlightById(id); 
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Flight> all() { 
     	log.info("Fetching all flights");
     	return service.getAllFlights();
@@ -75,4 +69,37 @@ public class FlightRestController {
     	log.info("Searching flights from {} to {}", origin, destination);
         return service.searchFlights(origin, destination);
     }
+    
+	/*
+	 * @PatchMapping("/{id}/status")
+	 * 
+	 * @PreAuthorize("hasRole('ADMIN','FLIGHT_OWNER')") public
+	 * ResponseEntity<Flight> updateStatus(@PathVariable Long id, @RequestBody
+	 * Map<String, String> body) { String status = body.get("status");
+	 * log.info("Updating status of flight {} to {}", id, status); Flight updated =
+	 * service.updateFlightStatus(id, status); return ResponseEntity.ok(updated); }
+	 */
+    
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FLIGHT_OWNER')")
+    public ResponseEntity<Flight> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String status = body.get("status");
+        log.info("Updating status of flight {} to {}", id, status);
+
+        if (status == null || status.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            Flight updated = service.updateFlightStatus(id, status.trim().toUpperCase());
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            log.error("Failed to update flight status", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
 }
